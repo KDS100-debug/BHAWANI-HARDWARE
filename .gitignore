@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+
+# next
+/.next/
+/out/
+
+# production
+/build
+/dist
+
+# local configuration and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# test output
+/coverage
+/playwright-report
+/test-results
+
+# supabase local runtime
+/supabase/.branches
+/supabase/.temp
+
+# misc
+.DS_Store
+*.pem
+*.log
+.vercel
+next-env.d.ts
+tsconfig.tsbuildinfo
