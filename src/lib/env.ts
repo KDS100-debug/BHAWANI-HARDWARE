@@ -4,6 +4,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(20),
   NEXT_PUBLIC_APP_URL: z.url().default("https://bhawani-hardware.vercel.app"),
+  NEXT_PUBLIC_WHATSAPP_OTP_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
@@ -13,6 +14,7 @@ export function getPublicEnv(): PublicEnv {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_WHATSAPP_OTP_ENABLED: process.env.NEXT_PUBLIC_WHATSAPP_OTP_ENABLED,
   });
 
   if (!result.success) {

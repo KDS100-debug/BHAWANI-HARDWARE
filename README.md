@@ -28,6 +28,10 @@ The development seed is in [supabase/seed.sql](supabase/seed.sql). It creates cl
 
 Customer accounts can register at `/login`. Create the first staff account in the Supabase Dashboard under Authentication using a unique development-only email and a password stored in your password manager. Then assign its profile role through a trusted SQL editor action, for example `update public.profiles set role = 'owner' where id = '<auth-user-id>';`. Never commit those credentials. The `/admin` route verifies the profile role server-side.
 
+## WhatsApp customer sign-in
+
+Customer phone OTP is implemented but disabled by default so existing email sign-in remains available until delivery is ready. Enable Phone Auth in the hosted Supabase Dashboard, configure **Twilio or Twilio Verify** and an approved WhatsApp sender, then set `NEXT_PUBLIC_WHATSAPP_OTP_ENABLED=true` in Vercel's Production environment and redeploy. Do not put Twilio credentials in Git or `NEXT_PUBLIC_` variables. Customer sign-up/sign-in then uses a WhatsApp code instead of email verification; staff email/password sign-in remains unchanged. Plan how existing email-only customer accounts will link their phone numbers before enabling this for everyone. Set Supabase Auth rate limits and CAPTCHA before broad rollout.
+
 ## Production setup
 
 Apply `supabase/migrations` in order to the hosted Supabase project before using staff sign-in. In the hosted Supabase Dashboard, set the Auth Site URL to `https://bhawani-hardware.vercel.app` and allow `https://bhawani-hardware.vercel.app/**` as a redirect URL. The local `supabase/config.toml` does not change hosted Auth settings. Create the first owner through a trusted server or Supabase Dashboard, and keep the service-role key out of the repo and Vercel browser variables.
