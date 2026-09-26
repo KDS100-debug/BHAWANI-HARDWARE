@@ -2,22 +2,41 @@
 
 import { Search, ShoppingCart, UserRound, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import type { PublicCategory, PublicProduct } from "@/lib/catalogue";
 
 type ProductGroup = { name: string; category: string; categorySlug: string; products: PublicProduct[] };
+const cartKey = "bhawani-cart";
+const cartChangeEvent = "bhawani-cart-change";
+const emptyCartSnapshot = "{}";
+
+function getCartSnapshot() {
+  try { return window.localStorage.getItem(cartKey) ?? emptyCartSnapshot; }
+  catch { return emptyCartSnapshot; }
+}
+
+function subscribeToCart(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(cartChangeEvent, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(cartChangeEvent, callback);
+  };
+}
+
+function parseCart(snapshot: string): Record<string, number> {
+  try {
+    const parsed: unknown = JSON.parse(snapshot);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(Object.entries(parsed).filter(([, count]) => typeof count === "number" && Number.isInteger(count) && count > 0));
+  } catch { return {}; }
+}
 
 export function CatalogueBrowser({ categories, products }: { categories: PublicCategory[]; products: PublicProduct[] }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [search, setSearch] = useState("");
-  const [cart, setCart] = useState<Record<string, number>>(() => {
-    if (typeof window === "undefined") return {};
-    const saved = window.localStorage.getItem("bhawani-cart");
-    if (!saved) return {};
-    try { return JSON.parse(saved) as Record<string, number>; } catch { window.localStorage.removeItem("bhawani-cart"); return {}; }
-  });
-
-  useEffect(() => { window.localStorage.setItem("bhawani-cart", JSON.stringify(cart)); }, [cart]);
+  const cartSnapshot = useSyncExternalStore(subscribeToCart, getCartSnapshot, () => emptyCartSnapshot);
+  const cart = useMemo(() => parseCart(cartSnapshot), [cartSnapshot]);
 
   const groups = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -37,7 +56,12 @@ export function CatalogueBrowser({ categories, products }: { categories: PublicC
 
   const cartCount = Object.values(cart).reduce((total, count) => total + count, 0);
   const selectCategory = (slug: string) => { setSelectedCategory(slug); };
-  const addToCart = (id: string) => setCart((current) => ({ ...current, [id]: (current[id] ?? 0) + 1 }));
+  const addToCart = (id: string) => {
+    try {
+      window.localStorage.setItem(cartKey, JSON.stringify({ ...cart, [id]: (cart[id] ?? 0) + 1 }));
+      window.dispatchEvent(new Event(cartChangeEvent));
+    } catch { /* Storage may be unavailable in a restricted browser context. */ }
+  };
 
   return <div className="storefront">
     <header className="store-header"><div className="store-brand"><span className="brand-mark" aria-hidden="true">BH</span><div><strong><b>BHAWANI</b> HARDWARE</strong><span>Build Better Homes</span></div></div><div className="store-actions"><Link className="icon-button" href="/login" aria-label="Sign in"><UserRound size={23} /></Link><button className="icon-button cart-button" type="button" aria-label={`${cartCount} items in cart`}><ShoppingCart size={23} />{cartCount > 0 && <span>{cartCount}</span>}</button></div></header>
