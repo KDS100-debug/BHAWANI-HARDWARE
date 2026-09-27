@@ -1,0 +1,92 @@
+import "server-only";
+
+import { cache } from "react";
+import { createClient } from "@/lib/supabase/server";
+import { permissionCodes, type AppRole, type PermissionCode } from "@/lib/auth/permissions";
+
+export type StaffContext = {
+  userId: string;
+  email: string;
+  fullName: string | null;
+  role: Exclude<AppRole, "customer">;
+  isOwner: boolean;
+  permissions: ReadonlySet<PermissionCode>;
+  authorizationReady: boolean;
+};
+
+export class AuthorizationError extends Error {
+  constructor(message = "You do not have permission to perform this action.") {
+    super(message);
+    this.name = "AuthorizationError";
+  }
+}
+
+const staffRoles = new Set<AppRole>(["owner", "staff", "manager", "sales_staff", "accountant"]);
+
+export const getCurrentStaffContext = cache(async (): Promise<StaffContext | null> => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("full_name, role, is_active")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || !profile || !profile.is_active || !staffRoles.has(profile.role)) return null;
+
+  const role = profile.role as Exclude<AppRole, "customer">;
+  const isOwner = role === "owner";
+  if (isOwner) {
+    return {
+      userId: user.id,
+      email: user.email ?? "Owner",
+      fullName: profile.full_name,
+      role,
+      isOwner: true,
+      permissions: new Set(permissionCodes),
+      authorizationReady: true,
+    };
+  }
+
+  const { data, error } = await supabase.rpc("my_permissions");
+  const permissions = new Set<PermissionCode>();
+  if (!error) {
+    for (const row of data ?? []) {
+      if (permissionCodes.includes(row.permission_code as PermissionCode)) {
+        permissions.add(row.permission_code as PermissionCode);
+      }
+    }
+  }
+
+  return {
+    userId: user.id,
+    email: user.email ?? "Staff member",
+    fullName: profile.full_name,
+    role,
+    isOwner: false,
+    permissions,
+    authorizationReady: !error,
+  };
+});
+
+export async function requireStaffContext() {
+  const context = await getCurrentStaffContext();
+  if (!context) throw new AuthorizationError("A verified staff account is required.");
+  return context;
+}
+
+export async function requirePermission(permission: PermissionCode) {
+  const context = await requireStaffContext();
+  if (!context.isOwner && !context.permissions.has(permission)) throw new AuthorizationError();
+  return context;
+}
+
+export async function requireAnyPermission(permissions: readonly PermissionCode[]) {
+  const context = await requireStaffContext();
+  if (!context.isOwner && !permissions.some((permission) => context.permissions.has(permission))) {
+    throw new AuthorizationError();
+  }
+  return context;
+}

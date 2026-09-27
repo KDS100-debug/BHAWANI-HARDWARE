@@ -4,6 +4,10 @@
 - [ ] Generate database types from the deployed schema.
 - [ ] Create the first owner through a controlled bootstrap procedure; remove development accounts.
 - [ ] Confirm RLS with anon, each staff role and service-role test cases.
+- [ ] Apply `202609270001_add_staff_role.sql` and `202609270002_rbac.sql` separately and verify `my_permissions()` for an owner and a default staff account.
+- [ ] Add `SUPABASE_SECRET_KEY` to Vercel Production only if in-app staff creation is required; confirm it is absent from client bundles and `NEXT_PUBLIC_*` variables.
+- [ ] Verify default Staff cannot select `products.default_purchase_cost`, open profit/settings/audit routes, or invoke permission-protected writes directly.
+- [ ] Verify staff activation and permission changes produce immutable `audit_logs` rows.
 - [ ] Configure Auth URL allowlists, SMTP, password policy and MFA expectations.
 - [ ] Keep service-role credentials only in explicitly trusted server environments.
 - [ ] Configure private Storage buckets, MIME/size checks and signed URL expiry.

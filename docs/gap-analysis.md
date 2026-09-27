@@ -14,8 +14,8 @@ Audited on 2026-09-25 against the master build specification.
 
 ## Partially implemented
 
-- Supabase Auth session refresh exists, but business profiles, roles, permissions and protected admin routes are not implemented.
-- UI shell and route entry points exist, but customer cart/checkout and admin workflows are not connected.
+- Supabase Auth session refresh, business profiles, owner/staff permissions, RLS enforcement and protected admin routes are implemented. The hosted project still requires the latest RBAC migrations before Staff access is enabled.
+- Permission-filtered owner/staff shells and module entry points exist, but customer cart/checkout and business transaction workflows are not connected.
 - Database type generation is represented for the current catalogue tables; it must be regenerated from the deployed schema after migration application.
 - Storage is configured at the local Supabase level, but product-image buckets and upload policies are not implemented.
 
@@ -26,7 +26,7 @@ Audited on 2026-09-25 against the master build specification.
 - Direct sales, purchases, weighted-average costing, COGS and idempotent finalization.
 - Customers, retailers, suppliers, payments, ledgers, expenses and profit reporting.
 - GST tax engine, GST transactions, invoices, returns and credit/debit notes.
-- Audit logs, admin CRUD, dashboard, reports, exports and integration/concurrency/security tests.
+- Business-transaction audit coverage, admin CRUD for each ledger, live dashboard metrics, reports, exports and integration/concurrency/security tests.
 
 ## Needs refactoring later
 
@@ -37,8 +37,8 @@ Audited on 2026-09-25 against the master build specification.
 
 ## Next implementation order
 
-1. Auth foundation: profiles, roles, permissions, RLS helpers and protected admin layout.
-2. Catalogue administration and private Storage policies.
+1. Catalogue administration and private Storage policies.
+2. Order, sales and payment ledgers with permission-gated transition RPCs.
 3. COD cart, checkout, order numbering and order persistence.
 4. Inventory ledger and reservation RPCs, followed by order operations.
 5. Sales, purchases, payments, ledgers, GST and reporting in transactional slices.
