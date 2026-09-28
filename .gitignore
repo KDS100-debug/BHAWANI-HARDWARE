@@ -10,9 +10,7 @@
 /dist
 
 # local configuration and secrets
-.env
-.env.local
-.env.*.local
+.env*
 !.env.example
 
 # test output

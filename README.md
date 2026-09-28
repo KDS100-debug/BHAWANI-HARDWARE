@@ -12,7 +12,7 @@ Production-oriented inventory, commerce, billing, GST and accounting PWA built w
 
 ## Hosted app
 
-The production site is [bhawani-hardware.vercel.app](https://bhawani-hardware.vercel.app). The GitHub `main` branch is connected to the Vercel project; pushes to `main` trigger production deployments. Public Supabase settings and the canonical site URL are in `.env.production`. Keep elevated Supabase keys out of Git and browser variables.
+The production site is [bhawani-hardware.vercel.app](https://bhawani-hardware.vercel.app). The GitHub `main` branch is connected to the Vercel project; pushes to `main` trigger production deployments. Configure production environment variables in Vercel rather than committing `.env.production`; use `.env.example` only as the variable-name template. Keep elevated Supabase keys out of Git and browser variables.
 
 ## Development setup
 
@@ -38,7 +38,7 @@ Apply migrations `202609270001_add_staff_role.sql` and `202609270002_rbac.sql` t
 
 `owner` is an unconditional application override. `staff` starts with only operational order, sale, product, inventory, customer and supplier permissions. Optional access is stored as per-user overrides and can be managed at `/admin/staff`. Sensitive dashboards, purchase cost, profitability, settings, staff administration and audit history are absent from the default Staff interface.
 
-To create staff from the application, add `SUPABASE_SECRET_KEY` to the trusted server environment in Vercel. It must never use a `NEXT_PUBLIC_` prefix. The key is used only by the server-side staff-creation action; browser sessions continue to use the publishable key and RLS. If this secret is not configured, owners can still create a user in the Supabase Dashboard and assign `role = 'staff'` in the SQL Editor.
+To create staff from the application, create a dedicated Supabase secret key and add it as `SUPABASE_SECRET_KEY` to the trusted server environment in Vercel. For local development, put the rotated key in the ignored `.env.local` file. It must never use a `NEXT_PUBLIC_` prefix. The key is used only by the server-side staff-creation action; browser sessions continue to use the publishable key and RLS. If this secret is not configured, owners can still create a user in the Supabase Dashboard and assign `role = 'staff'` in the SQL Editor.
 
 Audit rows are append-only for browser roles. Confirmed financial and inventory workflows should use future cancellation, reversal, return and correction records rather than hard deletes.
 
