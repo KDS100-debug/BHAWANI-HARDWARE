@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import "./globals.css";
 
@@ -32,8 +33,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        {children}
-        <ServiceWorkerRegistration />
+        <AuthProvider>
+          {children}
+          <ServiceWorkerRegistration />
+        </AuthProvider>
       </body>
     </html>
   );

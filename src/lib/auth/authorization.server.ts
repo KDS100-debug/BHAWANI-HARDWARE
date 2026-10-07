@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { getCurrentAccountContext } from "@/lib/auth/account.server";
 import { createClient } from "@/lib/supabase/server";
 import { permissionCodes, type AppRole, type PermissionCode } from "@/lib/auth/permissions";
 
@@ -24,25 +25,17 @@ export class AuthorizationError extends Error {
 const staffRoles = new Set<AppRole>(["owner", "staff", "manager", "sales_staff", "accountant"]);
 
 export const getCurrentStaffContext = cache(async (): Promise<StaffContext | null> => {
+  const account = await getCurrentAccountContext();
+  if (!account || !account.isReady || !staffRoles.has(account.role)) return null;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("full_name, role, is_active")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profileError || !profile || !profile.is_active || !staffRoles.has(profile.role)) return null;
-
-  const role = profile.role as Exclude<AppRole, "customer">;
+  const role = account.role as Exclude<AppRole, "customer">;
   const isOwner = role === "owner";
   if (isOwner) {
     return {
-      userId: user.id,
-      email: user.email ?? "Owner",
-      fullName: profile.full_name,
+      userId: account.userId,
+      email: account.email ?? account.phone ?? "Owner",
+      fullName: account.fullName,
       role,
       isOwner: true,
       permissions: new Set(permissionCodes),
@@ -61,9 +54,9 @@ export const getCurrentStaffContext = cache(async (): Promise<StaffContext | nul
   }
 
   return {
-    userId: user.id,
-    email: user.email ?? "Staff member",
-    fullName: profile.full_name,
+    userId: account.userId,
+    email: account.email ?? account.phone ?? "Staff member",
+    fullName: account.fullName,
     role,
     isOwner: false,
     permissions,

@@ -7,6 +7,7 @@ import {
   FileText,
   IndianRupee,
   LayoutDashboard,
+  LockKeyhole,
   PackageSearch,
   ReceiptIndianRupee,
   Settings,
@@ -56,6 +57,7 @@ export function AdminShell({ context, children }: { context: StaffContext; child
             const Icon = moduleIcons[module.slug as keyof typeof moduleIcons] ?? PackageSearch;
             return <Link href={`/admin/${module.slug}`} key={module.slug}><Icon size={18} /> {module.shortTitle}</Link>;
           })}
+          <Link href="/account/security"><LockKeyhole size={18} /> Account security</Link>
         </nav>
         <div className="admin-account">
           <span className="admin-avatar">{displayName.slice(0, 1).toUpperCase()}</span>

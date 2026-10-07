@@ -8,18 +8,24 @@ export type Database = {
         Row: {
           id: string;
           email: string | null;
+          phone: string | null;
+          phone_verified_at: string | null;
           full_name: string | null;
           role: Database["public"]["Enums"]["app_role"];
           is_active: boolean;
+          requires_account_completion: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           email?: string | null;
+          phone?: string | null;
+          phone_verified_at?: string | null;
           full_name?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           is_active?: boolean;
+          requires_account_completion?: boolean;
           created_at?: string;
           updated_at?: string;
         };

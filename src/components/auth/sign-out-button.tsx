@@ -1,9 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 
 export function SignOutButton() {
   const router = useRouter();
-  return <button className="button button-secondary" type="button" onClick={async () => { await createClient().auth.signOut(); router.push("/"); router.refresh(); }}>Sign out</button>;
+  const { signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  return <button className="button button-secondary" type="button" disabled={isSigningOut} onClick={async () => {
+    setIsSigningOut(true);
+    await signOut();
+    router.replace("/login");
+    router.refresh();
+  }}>{isSigningOut ? "Signing out..." : "Sign out"}</button>;
 }

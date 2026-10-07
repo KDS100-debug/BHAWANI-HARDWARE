@@ -3,6 +3,7 @@
 import { Search, ShoppingCart, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import type { PublicCategory, PublicProduct } from "@/lib/catalogue";
 
 type ProductGroup = { name: string; category: string; categorySlug: string; products: PublicProduct[] };
@@ -33,6 +34,7 @@ function parseCart(snapshot: string): Record<string, number> {
 }
 
 export function CatalogueBrowser({ categories, products }: { categories: PublicCategory[]; products: PublicProduct[] }) {
+  const { isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [search, setSearch] = useState("");
   const cartSnapshot = useSyncExternalStore(subscribeToCart, getCartSnapshot, () => emptyCartSnapshot);
@@ -64,7 +66,7 @@ export function CatalogueBrowser({ categories, products }: { categories: PublicC
   };
 
   return <div className="storefront">
-    <header className="store-header"><div className="store-brand"><span className="brand-mark" aria-hidden="true">BH</span><div><strong><b>BHAWANI</b> HARDWARE</strong><span>Build Better Homes</span></div></div><div className="store-actions"><Link className="icon-button" href="/login" aria-label="Sign in"><UserRound size={23} /></Link><button className="icon-button cart-button" type="button" aria-label={`${cartCount} items in cart`}><ShoppingCart size={23} />{cartCount > 0 && <span>{cartCount}</span>}</button></div></header>
+    <header className="store-header"><div className="store-brand"><span className="brand-mark" aria-hidden="true">BH</span><div><strong><b>BHAWANI</b> HARDWARE</strong><span>Build Better Homes</span></div></div><div className="store-actions"><Link className="icon-button" href={isAuthenticated ? "/account/security" : "/login"} aria-label={isAuthenticated ? "Account security" : "Sign in"}><UserRound size={23} /></Link><button className="icon-button cart-button" type="button" aria-label={`${cartCount} items in cart`}><ShoppingCart size={23} />{cartCount > 0 && <span>{cartCount}</span>}</button></div></header>
     <div className="catalogue-search"><Search size={20} aria-hidden="true" /><input aria-label="Search products" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products, item ID or category..." />{search && <button type="button" aria-label="Clear search" onClick={() => setSearch("")}><X size={18} /></button>}</div>
     <div className="catalogue-layout"><aside className="category-sidebar" aria-label="Product categories">{categories.map((category) => <button className={`category-item ${selectedCategory === category.slug ? "selected" : ""}`} type="button" key={category.id} onClick={() => selectCategory(category.slug)}><span className="category-icon">{category.image_url ? <span className="category-photo" style={{ backgroundImage: `url(${category.image_url})` }} aria-label={`${category.name} category image`} role="img" /> : category.name.slice(0, 1)}</span><span>{category.name}</span></button>)}</aside><main className="product-area">{groups.length ? groups.map((group) => <ProductRow group={group} onAdd={addToCart} key={`${group.categorySlug}-${group.name}`} />) : <div className="empty-state catalogue-empty"><p className="eyebrow">No matches</p><h2>Nothing found for that search</h2><p>Try a product name, item ID, SKU or category.</p></div>}</main></div>
   </div>;
