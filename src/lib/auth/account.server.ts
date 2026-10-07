@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { isPhoneReadyForAccess } from "@/lib/auth/client";
+import { getUserFullName, isPhoneReadyForAccess } from "@/lib/auth/client";
 import { createClient } from "@/lib/supabase/server";
 import type { AppRole } from "@/lib/auth/permissions";
 
@@ -31,12 +31,13 @@ export const getCurrentAccountContext = cache(async (): Promise<AccountContext |
   if (error || !profile) return null;
   const phoneVerifiedAt = profile.phone_verified_at ?? user.phone_confirmed_at ?? null;
   const phone = profile.phone ?? user.phone ?? null;
+  const fullName = getUserFullName(user, profile.full_name);
   const isReady = Boolean(
     profile.is_active
     && isPhoneReadyForAccess(profile.phone, profile.phone_verified_at, user.phone, user.phone_confirmed_at)
     && phone
     && phoneVerifiedAt
-    && profile.full_name
+    && fullName
     && !profile.requires_account_completion,
   );
 
@@ -44,7 +45,7 @@ export const getCurrentAccountContext = cache(async (): Promise<AccountContext |
     userId: user.id,
     email: profile.email ?? user.email ?? null,
     phone,
-    fullName: profile.full_name,
+    fullName,
     role: profile.role,
     isActive: profile.is_active,
     phoneVerifiedAt,

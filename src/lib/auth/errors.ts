@@ -22,6 +22,8 @@ export function authErrorMessage(error: AuthError | null, operation: AuthOperati
       return "Too many attempts. Please try again shortly.";
     case "phone_exists":
       return "This phone number is already associated with another account.";
+    case "invalid_phone_number":
+      return "The phone number is not valid. Use a valid mobile number and try again.";
     case "email_exists":
     case "user_already_exists":
       return "This email address is already associated with another account.";
@@ -41,6 +43,9 @@ export function authErrorMessage(error: AuthError | null, operation: AuthOperati
   if (message.includes("rate") || message.includes("too many")) return "Too many attempts. Please try again shortly.";
   if (message.includes("phone") && (message.includes("registered") || message.includes("exists"))) {
     return "This phone number is already registered.";
+  }
+  if (message.includes("phone") && (message.includes("invalid") || message.includes("format"))) {
+    return "The phone number is not valid. Use a valid mobile number and try again.";
   }
   if (message.includes("email") && message.includes("exists")) {
     return "This email address is already associated with another account.";

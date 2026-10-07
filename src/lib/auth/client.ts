@@ -14,6 +14,11 @@ export function isPhoneReadyForAccess(
   return Boolean(phone && confirmedAt);
 }
 
+export function getUserFullName(user: { user_metadata?: Record<string, unknown> | null } | null, fallback?: string | null): string | null {
+  const metadataName = typeof user?.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "";
+  return metadataName || fallback || null;
+}
+
 export function safeNextPath(value?: string | null): string | null {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
   return value;
@@ -38,8 +43,9 @@ export async function resolveSignedInDestination(
     return { error: "Your account is currently inactive. Please contact the administrator." };
   }
 
+  const fullName = getUserFullName(user, profile.full_name);
   const phoneReady = isPhoneReadyForAccess(profile.phone, profile.phone_verified_at, user.phone, user.phone_confirmed_at);
-  if (!phoneReady || !profile.full_name || profile.requires_account_completion) {
+  if (!phoneReady || !fullName || profile.requires_account_completion) {
     return { destination: "/account/complete-phone" };
   }
 
