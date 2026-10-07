@@ -3,6 +3,17 @@ import type { Database } from "@/types/database.generated";
 
 const staffRoles = new Set(["owner", "staff", "manager", "sales_staff", "accountant"]);
 
+export function isPhoneReadyForAccess(
+  profilePhone?: string | null,
+  profilePhoneVerifiedAt?: string | null,
+  authPhone?: string | null,
+  authPhoneConfirmedAt?: string | null,
+): boolean {
+  const phone = profilePhone ?? authPhone;
+  const confirmedAt = profilePhoneVerifiedAt ?? authPhoneConfirmedAt ?? null;
+  return Boolean(phone && confirmedAt);
+}
+
 export function safeNextPath(value?: string | null): string | null {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
   return value;
@@ -27,7 +38,7 @@ export async function resolveSignedInDestination(
     return { error: "Your account is currently inactive. Please contact the administrator." };
   }
 
-  const phoneReady = Boolean(user.phone && user.phone_confirmed_at && profile.phone && profile.phone_verified_at);
+  const phoneReady = isPhoneReadyForAccess(profile.phone, profile.phone_verified_at, user.phone, user.phone_confirmed_at);
   if (!phoneReady || !profile.full_name || profile.requires_account_completion) {
     return { destination: "/account/complete-phone" };
   }
